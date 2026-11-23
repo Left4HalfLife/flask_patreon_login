@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} | {{ config.SITE_NAME }}{% endblock %}
+{% block content %}
+<article class="reading">
+  <a class="back-link" href="{{ url_for('blog.index') }}">&larr; Back to the journal</a>
+  <p class="eyebrow">{{ post.created_at.strftime('%B %d, %Y') }} &middot; THE JOURNAL</p>
+  <h1>{{ post.title }}</h1>
+  <div class="tags">{% for tag in post.tags %}<a class="pill" href="{{ url_for('blog.index', tag=tag.name) }}">{{ tag.name }}</a>{% endfor %}</div>
+  {% if g.user and g.user.is_admin and not g.user.must_change_password %}<p><a class="button secondary small" href="{{ url_for('blog.edit_post', post_id=post.id) }}">Edit post &amp; access</a></p>{% endif %}
+  <div class="post-body">{{ post.body }}</div>
+  <div class="attachments">
+    {% for attachment in post.attachments %}
+      {% if attachment.kind == 'image' %}
+      <figure><img src="{{ url_for('blog.media', attachment_id=attachment.id) }}" alt="{{ attachment.name }}" loading="lazy"><figcaption>{{ attachment.name }}</figcaption></figure>
+      {% elif attachment.kind == 'video' %}
+      <figure><video controls preload="metadata" src="{{ url_for('blog.media', attachment_id=attachment.id) }}"></video><figcaption>{{ attachment.name }}</figcaption></figure>
+      {% else %}
+      <a class="download" href="{{ url_for('blog.media', attachment_id=attachment.id) }}"><span class="file-icon">&darr;</span><span>{{ attachment.name }}<small>Download attachment</small></span></a>
+      {% endif %}
+    {% endfor %}
+  </div>
+</article>
+{% endblock %}

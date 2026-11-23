@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% macro release_row(index, release=none) %}
+<fieldset class="release-row">
+  <legend>Timed access grant</legend>
+  <label>Release at (UTC)<input type="datetime-local" name="release_at" value="{{ release.at.strftime('%Y-%m-%dT%H:%M') if release else '' }}"></label>
+  <div class="delay-buttons"><span class="hint">Add to selected date or now:</span><button type="button" class="button secondary small" data-days="7">+7 days</button><button type="button" class="button secondary small" data-days="30">+30 days</button><button type="button" class="button secondary small" data-days="90">+90 days</button></div>
+  <label class="check"><input type="checkbox" name="release_public_{{ index }}" {% if release and release.public %}checked{% endif %}> Free / public at this time (no login needed)</label>
+  <div class="checkbox-grid">{% for tier in tiers %}<label class="check"><input type="checkbox" name="release_tiers_{{ index }}" value="{{ tier.id }}" {% if release and tier.id in release.tier_ids %}checked{% endif %}>{{ tier.title }}</label>{% endfor %}</div>
+  <button type="button" class="text-button danger" data-remove-release>Remove timed grant</button>
+</fieldset>
+{% endmacro %}
+{% block content %}
+<a class="back-link" href="{{ url_for('blog.settings') }}">&larr; Studio settings</a>
+<div class="section-heading"><div><p class="eyebrow">MAKE SOMETHING WORTH SHARING</p><h1>{{ 'Edit post' if post.id else 'A new story' }}</h1></div></div>
+<form method="post" enctype="multipart/form-data" class="editor-form" id="post-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="editor-columns">
+    <section class="panel stack">
+      <label>Post title<input name="title" value="{{ post.title }}" maxlength="200" placeholder="What have you been working on?" required></label>
+      <label>Your story<textarea name="body" rows="16" maxlength="100000" placeholder="A glimpse into the process...">{{ post.body }}</textarea></label>
+      <p class="hint">Plain text, safely displayed. HTML and scripts are not executed.</p>
+      <label>Images, videos &amp; files<input name="attachments" type="file" multiple accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.pdf,.txt,.zip,.7z,.mp3,.wav"></label>
+      <p class="hint">Up to 20 files per post, 256 MiB total per request. Images and videos appear inline; other files download.</p>
+      {% if post.attachments %}<p class="hint">Existing attachments are kept. Manage them below after saving.</p>{% endif %}
+      <fieldset><legend>Tags</legend><div class="checkbox-grid">{% for tag in tags %}<label class="check"><input type="checkbox" name="tags" value="{{ tag.id }}" {% if tag in post.tags %}checked{% endif %}>{{ tag.name }}</label>{% else %}<p class="hint">Create tags in settings first.</p>{% endfor %}</div></fieldset>
+    </section>
+    <aside class="stack">
+      <section class="panel">
+        <h2>Who can see it?</h2><p class="hint">Nothing is visible unless you grant access. Select every tier you want to include, even higher tiers.</p>
+        <label class="check"><input type="checkbox" name="public" {% if post.public %}checked{% endif %}> Free / public now (no login needed)</label>
+        <div class="stack compact">{% for tier in tiers %}<label class="check"><input type="checkbox" name="tier_ids" value="{{ tier.id }}" {% if post.tier_ids and tier.id in post.tier_ids %}checked{% endif %}>{{ tier.title }}</label>{% else %}<p class="hint">Register your Patreon tiers in settings.</p>{% endfor %}</div>
+      </section>
+      <section class="panel">
+        <h2>Open it up later</h2><p class="hint">Timed grants add access; they never revoke existing access. All dates are UTC and take effect automatically.</p>
+        <div id="releases">{% for release in post.releases %}{{ release_row(loop.index0, release) }}{% endfor %}</div>
+        <button type="button" class="button secondary" id="add-release">+ Add timed access</button>
+      </section>
+      <button class="button large">Save post</button>
+      <p class="hint">Saving publishes immediately to the selected audience. Leave all access unchecked to keep it admin-only until a timed grant.</p>
+    </aside>
+  </div>
+</form>
+<template id="release-template">{{ release_row('__INDEX__') }}</template>
+{% if post.id %}
+<section class="panel attachment-management">
+  <h2>Manage post</h2>
+  {% for attachment in post.attachments %}<form class="attachment-row" method="post" action="{{ url_for('blog.delete_attachment', attachment_id=attachment.id) }}" data-confirm="Delete this attachment permanently?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><span>{{ attachment.name }}</span><button class="text-button danger">Delete attachment</button></form>{% endfor %}
+  <form method="post" action="{{ url_for('blog.delete_post', post_id=post.id) }}" data-confirm="Permanently delete this post and all its attachments?">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="button destructive">Delete post</button>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

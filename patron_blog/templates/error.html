@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="auth-card">
+  <p class="eyebrow">{{ error.code }}</p><h1>{{ error.name }}</h1><p>{{ error.description }}</p>
+  <a class="button secondary" href="{{ url_for('blog.index') }}">Back to the journal</a>
+</section>
+{% endblock %}
