@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Admin sign in | {{ config.SITE_NAME }}{% endblock %}
+{% block content %}
+<section class="auth-card">
+  <p class="eyebrow">STUDIO SETTINGS</p><h1>Welcome back.</h1>
+  <p class="muted">Administrator access requires your password and authenticator.</p>
+  <form method="post" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Username<input name="username" autocomplete="username" maxlength="200" required></label>
+    <label>Password<input type="password" name="password" autocomplete="current-password" maxlength="256" required></label>
+    <label>Authenticator code<input name="totp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required></label>
+    <button class="button">Sign in securely</button>
+  </form>
+  <p class="hint">First time? Use the bootstrap credentials in your environment. Enroll the TOTP secret in your authenticator before signing in. You will be required to replace the bootstrap password.</p>
+</section>
+{% endblock %}

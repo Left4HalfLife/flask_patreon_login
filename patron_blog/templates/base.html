@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ config.SITE_NAME }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='editor.js') }}" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="{{ url_for('blog.index') }}"><span class="brand-icon">S</span>{{ config.SITE_NAME }}</a>
+    <nav aria-label="Main navigation">
+      <a href="{{ url_for('blog.index') }}">Journal</a>
+      {% if g.user %}
+        <span class="muted user-name">{{ g.user.name }}</span>
+        {% if g.user.is_admin %}<a href="{{ url_for('blog.settings') }}">Settings</a>{% endif %}
+        <form action="{{ url_for('blog.logout') }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="button secondary small">Log out</button>
+        </form>
+      {% else %}
+        <form action="{{ url_for('blog.patreon_login') }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="button small">Connect with Patreon</button>
+        </form>
+      {% endif %}
+    </nav>
+  </header>
+  <main>
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+      <div class="notice {{ category }}" role="status">{{ message }}</div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer><span>{{ config.SITE_NAME }} &middot; A space for the things we make.</span><a href="{{ url_for('blog.settings') }}">Admin</a></footer>
+</body>
+</html>

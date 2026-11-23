@@ -1,0 +1,40 @@
+x-app: &app
+  build: .
+  env_file: .env
+  volumes:
+    - studio-data:/data
+  restart: unless-stopped
+  read_only: true
+  tmpfs:
+    - /tmp:size=300m,mode=1777
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  init: true
+
+services:
+  web:
+    <<: *app
+    ports:
+      - "127.0.0.1:${PORT:-8000}:8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import os, urllib.request, urllib.parse; r=urllib.request.Request('http://127.0.0.1:8000/health', headers={'Host': urllib.parse.urlparse(os.environ['SITE_URL']).netloc}); urllib.request.urlopen(r, timeout=5)"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    stop_grace_period: 30s
+  maintenance:
+    <<: *app
+    command: ["flask", "cleanup", "--loop"]
+    depends_on:
+      web:
+        condition: service_healthy
+
+volumes:
+  studio-data:

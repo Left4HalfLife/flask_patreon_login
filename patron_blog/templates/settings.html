@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-heading"><div><p class="eyebrow">YOUR CONTROL ROOM</p><h1>Studio settings</h1></div><a class="button" href="{{ url_for('blog.edit_post') }}">+ New post</a></div>
+<div class="settings-grid">
+  <section class="panel">
+    <h2>Membership tiers</h2><p class="muted">Use actual Patreon tier IDs. Prices are display-only; access never depends on payment amount or rank.</p>
+    <ul class="simple-list">{% for tier in tiers %}<li><strong>{{ tier.title }}</strong><span>ID {{ tier.id }} &middot; {{ tier.amount_cents }} cents</span></li>{% else %}<li>No tiers registered yet.</li>{% endfor %}</ul>
+    <form method="post" action="{{ url_for('blog.sync_tiers') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="button secondary">Sync tiers from Patreon</button>
+      <p class="hint">Requires a creator access token for your campaign in .env.</p>
+    </form>
+    <details><summary>Register a tier manually</summary>
+      <form class="stack" method="post" action="{{ url_for('blog.add_tier') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>Patreon tier ID<input name="tier_id" inputmode="numeric" pattern="[0-9]+" maxlength="100" required></label>
+        <label>Tier name<input name="title" maxlength="200" required></label>
+        <label>Price in cents<input name="amount_cents" type="number" min="0" max="999999999" value="0" required></label>
+        <button class="button">Add tier</button>
+      </form>
+    </details>
+  </section>
+  <section class="panel">
+    <h2>Tags</h2><p class="muted">Give your journal a little structure.</p>
+    <div class="tags">{% for tag in tags %}<span class="pill">{{ tag.name }}</span>{% else %}<span class="muted">No tags yet.</span>{% endfor %}</div>
+    <form class="stack" method="post" action="{{ url_for('blog.add_tag') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>New tag<input name="name" maxlength="60" placeholder="Behind the scenes" required></label>
+      <button class="button">Create tag</button>
+    </form>
+  </section>
+  <section class="panel">
+    <h2>Account &amp; privacy</h2>
+    <p>Two-factor authentication is required on every admin login. Administrator sessions expire after 8 hours.</p>
+    <p>Member sessions expire after 30 days. Patreon entitlement is refreshed at every login. Member accounts inactive for 90 days are automatically removed.</p>
+    <a class="button secondary" href="{{ url_for('blog.password') }}">Change password</a>
+  </section>
+</div>
+{% endblock %}
